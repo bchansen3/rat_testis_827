@@ -6,11 +6,11 @@ conda activate fastqc_env
 
 echo "activated"
 
-cd /bigdata/faustmanlab/bch/testis_coculture_baseline/usftp21.novogene.com/01.RawData/B_827_S2
+cd /bigdata/faustmanlab/bch/testis_coculture_baseline/usftp21.novogene.com/01.RawData/
 
 echo "here"
 
-fastqc *.fq.gz
+fastqc */*.fq.gz
 
 multiqc .
 
