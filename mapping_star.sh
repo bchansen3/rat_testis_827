@@ -16,7 +16,7 @@ fold=/bigdata/faustmanlab/bch/testis_coculture_baseline/usftp21.novogene.com/01.
 
 
 # A_827_S1
-STAR --runThreadN 4 --genomeDir $index --readFilesIn $fold/A_827_S1/A_827_S1_1.fq.g1 $fold/A_827_S1/A_827_S1_2.fq.g1 \
+STAR --runThreadN 4 --genomeDir $index --readFilesIn $fold/A_827_S1/A_827_S1_1.fq.gz $fold/A_827_S1/A_827_S1_2.fq.gz \
      --outSAMtype BAM SortedByCoordinate \
      --quantMode GeneCounts --readFilesCommand zcat \
      --outFileNamePrefix /bigdata/faustmanlab/bch/testis_coculture_baseline/aligned/A_827_S1/
