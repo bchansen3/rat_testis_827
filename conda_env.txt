@@ -1,2 +1,3 @@
-conda create -n r_testis_env r-essentials r-base
+conda create -n r_deseq2_env r-essentials r-base bioconductor-deseq2
 
+conda install -c bioconda bioconductor-deseq2

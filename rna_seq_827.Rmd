@@ -1,0 +1,89 @@
+---
+title: "RNAseq_counts"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("DESeq2")
+
+
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+library(plyranges)
+library(tidyverse)
+library(dplyr)
+library(plyr)
+library(DESeq2)
+library(DEGreport)
+library(GEOquery)
+library(Glimma)
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+```{r load counts}
+
+
+countPATH <- "/bigdata/faustmanlab/bch/testis_coculture_baseline/aligned/count_files"
+
+files <- list.files(path=countPATH, pattern="*.tab", full.names=TRUE)
+names(files) <- lapply(strsplit(files, "/"), "[",8)
+countslist <- lapply(files, read.delim, sep="\t", header=FALSE)
+names(countslist)<- names(files)
+colnames<- c("gene", "unstranded_counts", "Fstreadalign","Sndreadalign")
+
+
+```
+
+
+```{r rename}
+
+# check that this is proper column
+
+for (i in seq_along(countslist)){
+  colnames(countslist[[i]]) <- colnames}
+
+counts_temp <- lapply(countslist, function(x) {x <- x %>% dplyr::select(-c(Fstreadalign,Sndreadalign))})
+counts_use <- lapply(counts_temp, function(x) {x <- x[-c(1:4),]})
+all_counts <- reduce(counts_use, full_join, by = "gene")
+colnames(all_counts)<-c("gene", names(counts_use))
+
+rownames(all_counts)<- all_counts$gene
+all_counts <- all_counts[,-1]
+
+
+
+head(all_counts)
+
+```
+
+
+
+
+
+
