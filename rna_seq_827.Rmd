@@ -183,7 +183,7 @@ day7_day3$geneID <- rownames(day7_day3)
 mart <- useDataset("rnorvegicus_gene_ensembl", useMart("ensembl"))
 genes <- rownames(day7_day3)
 
-G_list <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id","rgd_symbol"),values=genes,mart= mart)
+G_list <- getBM(filters= "ensembl_gene_id", attributes=c("ensembl_gene_id","rgd_symbol"),values=genes,mart= mart)
 day7_day3 <- merge(day7_day3,G_list,by.x="geneID",by.y="ensembl_gene_id")
 
 
