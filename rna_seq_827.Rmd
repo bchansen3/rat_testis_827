@@ -9,6 +9,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## R Markdown
 
+
+REVIEW THIS: http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#differential-expression-analysis
+
+
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
@@ -190,3 +194,53 @@ day7_day3 <- merge(day7_day3,G_list,by.x="geneID",by.y="ensembl_gene_id")
 head(day7_day3[order(day7_day3$pvalue),])
 
 ```
+```{r prep-day3}
+
+day3_day0 <- as.data.frame(results(dds, name="date_prep_vs_Day3", test="Wald"))
+
+day3_day0$geneID <- rownames(day3_day0)
+
+mart <- useDataset("rnorvegicus_gene_ensembl", useMart("ensembl"))
+genes <- rownames(day3_day0)
+
+G_list_2 <- getBM(filters= "ensembl_gene_id", attributes=c("ensembl_gene_id","rgd_symbol"),values=genes,mart= mart)
+day3_day0 <- merge(day3_day0,G_list_2,by.x="geneID",by.y="ensembl_gene_id")
+
+
+head(day3_day0[order(day3_day0$pvalue),])
+
+```
+
+```{r prep-day5}
+
+day3_day0 <- as.data.frame(results(dds, name="date_prep_vs_Day3", test="Wald"))
+
+day3_day0$geneID <- rownames(day3_day0)
+
+mart <- useDataset("rnorvegicus_gene_ensembl", useMart("ensembl"))
+genes <- rownames(day3_day0)
+
+G_list_2 <- getBM(filters= "ensembl_gene_id", attributes=c("ensembl_gene_id","rgd_symbol"),values=genes,mart= mart)
+day3_day0 <- merge(day3_day0,G_list_2,by.x="geneID",by.y="ensembl_gene_id")
+
+
+head(day3_day0[order(day3_day0$pvalue),])
+```
+
+```{r prep-day7}
+
+day3_day0 <- as.data.frame(results(dds, name="date_prep_vs_Day3", test="Wald"))
+
+day3_day0$geneID <- rownames(day3_day0)
+
+mart <- useDataset("rnorvegicus_gene_ensembl", useMart("ensembl"))
+genes <- rownames(day3_day0)
+
+G_list_2 <- getBM(filters= "ensembl_gene_id", attributes=c("ensembl_gene_id","rgd_symbol"),values=genes,mart= mart)
+day3_day0 <- merge(day3_day0,G_list_2,by.x="geneID",by.y="ensembl_gene_id")
+
+
+head(day3_day0[order(day3_day0$pvalue),])
+
+```
+
