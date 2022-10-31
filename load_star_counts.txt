@@ -1,0 +1,29 @@
+# load in files from STAR --quantMode genecounts
+
+countPATH <- "/bigdata/faustmanlab/bch/gse108348_counts/counts"
+
+files <- list.files(path=countPATH, pattern="*.tab", full.names=TRUE)
+names(files) <- lapply(strsplit(files, "/|_"), "[",8)
+countslist <- lapply(files, read.delim, sep="\t", header=FALSE)
+names(countslist)<- names(files)
+colnames<- c("gene", "unstranded_counts", "htseq_count_Fstreadalign","htseq_countrev_Sndreadalign")
+
+
+# check that this is proper column
+
+for (i in seq_along(countslist)){
+  colnames(countslist[[i]]) <- colnames}
+
+counts_temp <- lapply(countslist, function(x) {x <- x %>% dplyr::select(-c(unstranded_counts,htseq_count_Fstreadalign))})
+counts_use <- lapply(counts_temp, function(x) {x <- x[-c(1:4),]})
+all_counts <- reduce(counts_use, full_join, by = "gene")
+colnames(all_counts)<-c("gene", names(counts_use))
+
+rownames(all_counts)<- all_counts$gene
+all_counts <- all_counts[,-1]
+
+
+
+head(all_counts)
+
+counts108348 = all_counts
