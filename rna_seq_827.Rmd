@@ -26,7 +26,7 @@ library(data.table)
 library(DESeq2)
 library(Glimma)
 library(biomaRt)
-
+library(EnhancedVolcano)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
@@ -69,6 +69,8 @@ all_counts <- all_counts[,-1]
 head(all_counts)
 
 ```
+
+
 ```{r metadata}
 
 metadata <- data.table(
@@ -82,10 +84,6 @@ metadata <- data.table(
 )
 
 metadata$date[c(1:3)] <- "prep"
-
-metadata$date <- as.factor(metadata$date)
-
-relevel(metadata$date, ref = "prep")
 
 ```
 
@@ -103,7 +101,7 @@ dds <- DESeq(dds)
 ```
 ```{r min-counts}
 
-keep <- rowSums(counts(dds) >= 5) >= 3
+keep <- rowSums(counts(dds) >= 3) >= 6
 table(keep)
 
 
@@ -174,15 +172,13 @@ resultsNames(dds)
 
 contrast_function <- function(object, parameter, contrast1, contrast2){
   
-  x <- as.data.frame(results( object, contrast=c(parameter,contrast1,contrast2)))
-
-x$geneID <- rownames(x)
+  x <- results( object, contrast=c(parameter,contrast1,contrast2), tidy=TRUE)
 
 mart <- useDataset("rnorvegicus_gene_ensembl", useMart("ensembl"))
-genes <- rownames(x)
+genes <- x$row
 
 glist <- getBM(filters= "ensembl_gene_id", attributes=c("ensembl_gene_id","rgd_symbol"),values=genes,mart= mart)
-y <- merge(x,glist,by.x="geneID",by.y="ensembl_gene_id")
+y <- merge(x,glist,by.x="row",by.y="ensembl_gene_id", all.x=TRUE)
 
 return(y) }
 
@@ -190,13 +186,21 @@ return(y) }
 
 ```{r day7 to prep}
 
-day7_to_prep <- contrast_function(dds,"date","Day7","prep")
+day7_to_prep <- contrast_function(dds,'date','Day7','prep')
 
 ```
 
+```{r day3 to prep}
+
+day3_to_prep <- contrast_function(dds,"date","Day3","prep")
+
+```
+
+
+
 ```{r day7 to day3}
 
-day7_to_day3 <- contrast_function(dds,"date","Day7","Day3")
+day7_to_day3 <- contrast_function(dds," date","Day7","Day3")
 
 ```
 
@@ -208,7 +212,7 @@ day7_to_day5 <- contrast_function(dds,"date","Day7","Day5")
 
 ```{r plot genes}
 
-a <- plotCounts(dds, gene=("ENSRNOG00000015075"), intgroup="date", returnData=TRUE)
+a <- plotCounts(dds, "ENSRNOG00000019358", intgroup="date", returnData=TRUE)
 library("ggplot2")
 ggplot(a, aes(x=date, y=count)) + 
   geom_point(position=position_jitter(w=0.1,h=0)) 
@@ -218,3 +222,71 @@ ggplot(a, aes(x=date, y=count)) +
 
 ```
 
+
+
+```{r volcano plot}
+
+## testin
+
+EnhancedVolcano(day7_to_day3,
+    lab = day7_to_day3$rgd_symbol,
+    x = 'log2FoldChange',
+    y = 'pvalue',
+    selectLab = c('Cyp11a1','Cyp17a1', 'Fdx1', 'Hsd17b2', 'Hsd17b3', 'Hsd3b1', 'Hsd3b2', 'Por', 'Srd5a1', 'Srd5a2', 'Star', 'Sts', 'Sult2a1'),
+    xlab = bquote(~Log[2]~ 'fold change'),
+    pointSize = 2.0,
+    labSize = 4.0,
+    colAlpha = 1,
+    legendPosition = 'right',
+    legendLabSize = 8,
+    legendIconSize = 4.0,
+    drawConnectors = TRUE,
+    widthConnectors = 0.75)
+
+
+
+
+
+```
+```{r volvanco prep}
+
+ #androgen signaling https://rgd.mcw.edu/rgdweb/ontology/annot.html?acc_id=PW:0000564&species=-1
+
+EnhancedVolcano(day3_to_prep,
+    lab = day3_to_prep$rgd_symbol,
+    x = 'log2FoldChange',
+    y = 'pvalue',
+    selectLab = c('Ar','Carm1', 'Crebbp', 'Dnaja2', 'Ep300', 'Hsp90aa1', 'Hsp90ab1', 'Hspa8', 'Ncoa1', 'Ncoa2', 'Ncoa3', 'Ncor1', 'Ncor2', 'Pias2', 'Prmt1', 'St13', 'Stip1' ),
+    xlab = bquote(~Log[2]~ 'fold change'),
+    pointSize = 2.0,
+    labSize = 4.0,
+    labCol = 'black',
+    labFace = 'bold',
+    boxedLabels = TRUE,
+    colAlpha = 4/5,
+    legendPosition = 'right',
+    legendLabSize = 8,
+    legendIconSize = 4.0,
+    drawConnectors = TRUE,
+    widthConnectors = 0.75)
+
+```
+
+```{r volvanco prep}
+
+ #FSH signaling https://rgd.mcw.edu/rgdweb/ontology/annot.html?acc_id=PW:0001071&species=-1
+
+EnhancedVolcano(day3_to_prep,
+    lab = day3_to_prep$rgd_symbol,
+    x = 'log2FoldChange',
+    y = 'pvalue',
+    xlab = bquote(~Log[2]~ 'fold change'),
+    pointSize = 2.0,
+    labSize = 4.0,
+    legendPosition = 'right',
+    legendLabSize = 8,
+    legendIconSize = 4.0,
+    drawConnectors = TRUE,
+    widthConnectors = 0.75)
+
+```
