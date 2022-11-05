@@ -15,15 +15,6 @@ REVIEW THIS: http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/d
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars, include=FALSE}
-
-
-
-
-```
-
 ## Including Plots
 
 You can also embed plots, for example:
@@ -92,6 +83,10 @@ metadata <- data.table(
 
 metadata$date[c(1:3)] <- "prep"
 
+metadata$date <- as.factor(metadata$date)
+
+relevel(metadata$date, ref = "prep")
+
 ```
 
 ```{r deseq2}
@@ -99,6 +94,10 @@ metadata$date[c(1:3)] <- "prep"
 dds <- DESeqDataSetFromMatrix(countData=all_counts,
                                 colData = metadata,
                                  design = ~date)
+
+
+
+
 
 dds <- DESeq(dds)
 ```
@@ -110,6 +109,8 @@ table(keep)
 
 
 ```
+
+
 ```{r filt genes}
 
 dds <- dds[keep,]
@@ -144,7 +145,7 @@ plotPCA(vsdata, intgroup="date")
 
 
 
-glimmaMDS(dds)
+#glimmaMDS(dds)
 
 
 ```
@@ -156,6 +157,8 @@ glimmaMDS(dds)
 
 head(res[order(res$pvalue),])
 ```
+
+
 ```{r plotMA}
 
 plotMA(res, ylim=c(-5,5))
@@ -166,81 +169,52 @@ resultsNames(dds)
 
 
 
-```{r results table}
+```{r function results table}
 
 
+contrast_function <- function(object, parameter, contrast1, contrast2){
+  
+  x <- as.data.frame(results( object, contrast=c(parameter,contrast1,contrast2)))
 
-day7_day3 <- as.data.frame(results(dds, name="date_Day7_vs_Day3", test="Wald"))
+x$geneID <- rownames(x)
 
-head(day7_day3[order(day7_day3$pvalue),])
+mart <- useDataset("rnorvegicus_gene_ensembl", useMart("ensembl"))
+genes <- rownames(x)
 
-day7_day3$geneID <- rownames(day7_day3)
+glist <- getBM(filters= "ensembl_gene_id", attributes=c("ensembl_gene_id","rgd_symbol"),values=genes,mart= mart)
+y <- merge(x,glist,by.x="geneID",by.y="ensembl_gene_id")
 
+return(y) }
 
 ```
 
+```{r day7 to prep}
 
-
-```{r biomart}
-
-
-mart <- useDataset("rnorvegicus_gene_ensembl", useMart("ensembl"))
-genes <- rownames(day7_day3)
-
-G_list <- getBM(filters= "ensembl_gene_id", attributes=c("ensembl_gene_id","rgd_symbol"),values=genes,mart= mart)
-day7_day3 <- merge(day7_day3,G_list,by.x="geneID",by.y="ensembl_gene_id")
-
-
-head(day7_day3[order(day7_day3$pvalue),])
-
-```
-```{r prep-day3}
-
-day3_day0 <- as.data.frame(results(dds, name="date_prep_vs_Day3", test="Wald"))
-
-day3_day0$geneID <- rownames(day3_day0)
-
-mart <- useDataset("rnorvegicus_gene_ensembl", useMart("ensembl"))
-genes <- rownames(day3_day0)
-
-G_list_2 <- getBM(filters= "ensembl_gene_id", attributes=c("ensembl_gene_id","rgd_symbol"),values=genes,mart= mart)
-day3_day0 <- merge(day3_day0,G_list_2,by.x="geneID",by.y="ensembl_gene_id")
-
-
-head(day3_day0[order(day3_day0$pvalue),])
+day7_to_prep <- contrast_function(dds,"date","Day7","prep")
 
 ```
 
-```{r prep-day5}
+```{r day7 to day3}
 
-day3_day0 <- as.data.frame(results(dds, name="date_prep_vs_Day3", test="Wald"))
+day7_to_day3 <- contrast_function(dds,"date","Day7","Day3")
 
-day3_day0$geneID <- rownames(day3_day0)
-
-mart <- useDataset("rnorvegicus_gene_ensembl", useMart("ensembl"))
-genes <- rownames(day3_day0)
-
-G_list_2 <- getBM(filters= "ensembl_gene_id", attributes=c("ensembl_gene_id","rgd_symbol"),values=genes,mart= mart)
-day3_day0 <- merge(day3_day0,G_list_2,by.x="geneID",by.y="ensembl_gene_id")
-
-
-head(day3_day0[order(day3_day0$pvalue),])
 ```
 
-```{r prep-day7}
+```{r day7 to day5}
 
-day3_day0 <- as.data.frame(results(dds, name="date_prep_vs_Day3", test="Wald"))
+day7_to_day5 <- contrast_function(dds,"date","Day7","Day5")
 
-day3_day0$geneID <- rownames(day3_day0)
+```
 
-mart <- useDataset("rnorvegicus_gene_ensembl", useMart("ensembl"))
-genes <- rownames(day3_day0)
+```{r plot genes}
 
-G_list_2 <- getBM(filters= "ensembl_gene_id", attributes=c("ensembl_gene_id","rgd_symbol"),values=genes,mart= mart)
-day3_day0 <- merge(day3_day0,G_list_2,by.x="geneID",by.y="ensembl_gene_id")
+a <- plotCounts(dds, gene=("ENSRNOG00000015075"), intgroup="date", returnData=TRUE)
+library("ggplot2")
+ggplot(a, aes(x=date, y=count)) + 
+  geom_point(position=position_jitter(w=0.1,h=0)) 
+  #scale_y_log10(breaks=c(25,100,400))
 
-
-head(day3_day0[order(day3_day0$pvalue),])
+## https://academic.oup.com/biolreprod/article/82/1/54/2557859#60652804
 
 ```
 
